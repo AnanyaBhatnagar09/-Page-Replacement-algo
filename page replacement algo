@@ -1,0 +1,108 @@
+/* 1)First-In-First-Out (FIFO)
+This algorithm replaces the oldest page in memory.*/
+
+#include <iostream>
+#include <queue>
+#include <unordered_set>
+using namespace std;
+
+int pageFaultsFIFO(vector<int>& pages, int capacity) {
+    unordered_set<int> s;
+    queue<int> indexes;
+    int page_faults = 0;
+
+    for (int i = 0; i < pages.size(); i++) {
+        if (s.size() < capacity) {
+            if (s.find(pages[i]) == s.end()) {
+                s.insert(pages[i]);
+                page_faults++;
+                indexes.push(pages[i]);
+            }
+        }
+        else {
+            if (s.find(pages[i]) == s.end()) {
+                int val = indexes.front();
+                indexes.pop();
+                s.erase(val);
+                s.insert(pages[i]);
+                indexes.push(pages[i]);
+                page_faults++;
+            }
+        }
+    }
+    return page_faults;
+}
+
+/*2)Least Recently Used (LRU)
+This algorithm replaces the page that has not been used for the longest period of time.*/
+
+
+#include <iostream>
+#include <list>
+#include <unordered_map>
+using namespace std;
+
+int pageFaultsLRU(vector<int>& pages, int capacity) {
+    unordered_map<int, list<int>::iterator> map;
+    list<int> dll;
+    int page_faults = 0;
+
+    for (int i = 0; i < pages.size(); i++) {
+        if (map.find(pages[i]) == map.end()) {
+            if (dll.size() == capacity) {
+                int last = dll.back();
+                dll.pop_back();
+                map.erase(last);
+            }
+        }
+        else {
+            dll.erase(map[pages[i]]);
+        }
+        dll.push_front(pages[i]);
+        map[pages[i]] = dll.begin();
+        if (map.size() > page_faults) {
+            page_faults++;
+        }
+    }
+    return page_faults;
+}
+/*3) Optimal Page Replacement
+This algorithm replaces the page that will not be used for the longest period of time in the future.*/
+
+
+#include <iostream>
+#include <vector>
+#include <unordered_set>
+#include <unordered_map>
+using namespace std;
+
+int pageFaultsOptimal(vector<int>& pages, int capacity) {
+    unordered_set<int> s;
+    unordered_map<int, int> index_map;
+    int page_faults = 0;
+
+    for (int i = 0; i < pages.size(); i++) {
+        if (s.size() < capacity) {
+            if (s.find(pages[i]) == s.end()) {
+                s.insert(pages[i]);
+                page_faults++;
+            }
+        }
+        else {
+            if (s.find(pages[i]) == s.end()) {
+                int lru = INT_MIN, val = -1;
+                for (auto it : s) {
+                    if (index_map[it] > lru) {
+                        lru = index_map[it];
+                        val = it;
+                    }
+                }
+                s.erase(val);
+                s.insert(pages[i]);
+                page_faults++;
+            }
+        }
+        index_map[pages[i]] = i;
+    }
+    return page_faults;
+}
